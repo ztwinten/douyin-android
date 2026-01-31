@@ -8,20 +8,17 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build with Buildozer
-        # 使用稳定版本标签或指定 commit
-        uses: ArtemSBulgakov/buildozer-action@v1.6.1
+        # 将版本改为 v1
+        uses: ArtemSBulgakov/buildozer-action@v1
         env:
-          # 核心修复：强制指定用户为 root，避免 chown 失败
           USER: root
         with:
           workdir: .
-          buildozer_version: master
-          # 第一次构建建议使用 debug 模式
+          # 显式指定 command 确保流程完整
           command: buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: DouyinMonitor-APK
-          # 这里的路径要匹配 buildozer 生成的默认位置
           path: bin/*.apk
