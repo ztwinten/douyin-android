@@ -10,24 +10,23 @@ package.domain = org.test
 # (str) Application version
 version = 0.1
 
+# (str) Source code directory. MUST be explicitly set to the current directory.
+source.dir = .
+
 # (list) Requirements
-# KivyMD is based on Kivy, and the code uses 'requests' and 'jnius' (for Android API access)
-requirements = python3,kivy,kivymd,requests
+# python3, kivy, kivymd, requests, and 'android' for jnius access
+requirements = python3,kivy,kivymd,requests,android
 
 # (str) Main application file
-# Assuming the user's code is saved as main.py
 source.main = main.py
 
 # (list) Android permissions
-# The app uses 'requests' for network access and Android Intent to open a URL, so INTERNET is required.
 android.permissions = INTERNET
 
-# (int) Minimum Android API to support.
-# Android 11 is API 30. Setting minapi to 30 ensures compatibility with Android 11 and newer.
+# (int) Minimum Android API to support. Android 11 is API 30.
 android.minapi = 30
 
-# (int) Target Android API.
-# API 33 (Android 13) is a common stable target for modern Kivy builds.
+# (int) Target Android API. API 33 (Android 13) is a stable target.
 android.targetsdk = 33
 
 # (str) Orientation (portrait, landscape, all)
