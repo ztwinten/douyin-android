@@ -22,31 +22,24 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' # Use a modern Python version
+          python-version: '3.11'
 
-      - name: Install Buildozer
+      - name: Install Buildozer and Dependencies
+        # Install buildozer and cython, which is required for Kivy compilation
         run: |
-          pip install buildozer
+          pip install buildozer cython
 
-      - name: Create main.py (assuming user's code is in the root)
-        # In a real scenario, the user would commit their main.py.
-        # This step is a placeholder to ensure the build has a main file.
-        # The user needs to ensure their main application file is named main.py
-        # or update the source.main in buildozer.spec.
+      - name: Install Android Build Dependencies
+        # Install necessary system packages for Android build tools
         run: |
-          echo "import sys; print('Placeholder main.py executed'); sys.exit(0)" > main.py
-          # Note: The user should replace this with their actual main.py file.
-
-      - name: Copy buildozer.spec
-        # This assumes the buildozer.spec is committed to the repository.
-        # If not, this step would be used to create it.
-        run: |
-          # Since I created buildozer.spec in the root, this is just a reminder
-          # that the file must be present.
+          sudo apt-get update
+          sudo apt-get install -y build-essential libssl-dev zlib1g-dev \
+            libffi-dev pkg-config
 
       - name: Run Buildozer (Debug Build)
-        # The buildozer command will download all necessary Android SDK components,
+        # This command will download all necessary Android SDK components,
         # NDK, and Kivy dependencies, then build the APK.
+        # The first run will be slow as it downloads everything.
         run: |
           buildozer android debug
 
