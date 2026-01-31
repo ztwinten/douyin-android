@@ -1,6 +1,5 @@
 name: Build Android APK
 
-# 手动触发或 push 到 main 分支时触发
 on:
   push:
     branches: [ main ]
@@ -11,28 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ANDROID_SDK_ROOT: ${{ runner.home }}/.buildozer/android/platform/android-sdk
-      PATH: ${{ runner.home }}/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin:${{ runner.home }}/.buildozer/android/platform/android-sdk/platform-tools:${{ env.PATH }}
+      ANDROID_SDK_ROOT: $HOME/.buildozer/android/platform/android-sdk
+      PATH: $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin:$HOME/.buildozer/android/platform/android-sdk/platform-tools:$PATH
 
     steps:
-    # 1. 拉取仓库代码
     - uses: actions/checkout@v4
 
-    # 2. 安装系统依赖
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y \
-          python3 python3-pip git zip unzip openjdk-17-jdk \
-          build-essential libssl-dev libffi-dev libsqlite3-dev zlib1g-dev wget curl
+        sudo apt install -y python3 python3-pip git zip unzip openjdk-17-jdk \
+                            build-essential libssl-dev libffi-dev libsqlite3-dev zlib1g-dev wget curl
 
-    # 3. 安装 Buildozer & Cython
     - name: Install Python packages
       run: |
         pip3 install --upgrade pip
         pip3 install buildozer cython
 
-    # 4. 安装 Android SDK cmdline-tools
     - name: Install Android cmdline-tools
       run: |
         mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
@@ -42,18 +36,14 @@ jobs:
         mv cmdline-tools latest
         rm cmdline-tools.zip
 
-    # 5. 安装 Android SDK 平台 & Build-Tools
-    - name: Install Android SDK packages
+    - name: Accept licenses & install SDK packages
       run: |
-        yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-        sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;36.1.0"
+        yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+        $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.1.0"
 
-    # 6. 构建 APK
     - name: Build APK
-      run: |
-        buildozer -v android debug
+      run: buildozer -v android debug
 
-    # 7. 上传 APK 产物
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
