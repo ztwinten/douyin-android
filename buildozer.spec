@@ -1,59 +1,43 @@
 [app]
-# (str) 应用标题
-title = Douyin Monitor
 
-# (str) 包名
-package.name = douyinmonitor
+# (str) Title of your application
+title = 抖音直播监测
 
-# (str) 域名（包名反转）
-package.domain = org.example
+# (str) Package name
+package.name = douyinlivemonitor
+package.domain = org.test
 
-# (str) 源代码目录
-source.dir = .
-
-# (list) 包含的文件后缀
-source.include_exts = py,kv,png,jpg
-
-# (list) 应用依赖
-# 核心提示：requests 在 Android 上需要 certifi 来处理 HTTPS 证书
-requirements = python3,kivy==2.3.0,kivymd==1.2.0,requests,urllib3,certifi,idna,charset-normalizer,pyjnius
-
-# (str) 自定义 Java 类路径 (如果有自定义 Java 文件)
-# android.add_src = 
-
-# (list) Android 权限
-android.permissions = INTERNET
-
-# (int) 目标 Android API (推荐 33 或 34)
-android.api = 33
-
-# (int) 最小 API 版本
-android.minapi = 21
-
-# (int) Android SDK 版本
-# android.sdk = 33
-
-# (int) Android NDK 版本
-# android.ndk = 25b
-
-# (bool) 是否自动接受 SDK 许可
-android.accept_sdk_license = True
-
-# (str) 屏幕方向
-orientation = portrait
-
-# (bool) 指示应用是否全屏
-fullscreen = 0
-
-# (list) 架构支持 (GitHub Actions 建议只选这两种，缩短打包时间)
-android.archs = arm64-v8a, armeabi-v7a
-
-# (str) 应用版本
+# (str) Application version
 version = 0.1
 
-[buildozer]
-# (int) 日志级别 (0 = error only, 1 = info, 2 = debug)
-log_level = 2
+# (list) Requirements
+# KivyMD is based on Kivy, and the code uses 'requests' and 'jnius' (for Android API access)
+requirements = python3,kivy,kivymd,requests
 
-# (int) 如果打包出错，是否停止
-warn_on_root = 1
+# (str) Main application file
+# Assuming the user's code is saved as main.py
+source.main = main.py
+
+# (list) Android permissions
+# The app uses 'requests' for network access and Android Intent to open a URL, so INTERNET is required.
+android.permissions = INTERNET
+
+# (int) Minimum Android API to support.
+# Android 11 is API 30. Setting minapi to 30 ensures compatibility with Android 11 and newer.
+android.minapi = 30
+
+# (int) Target Android API.
+# API 33 (Android 13) is a common stable target for modern Kivy builds.
+android.targetsdk = 33
+
+# (str) Orientation (portrait, landscape, all)
+orientation = portrait
+
+# (bool) Enable multidex for large apps (often needed for KivyMD)
+android.enable_multidex = True
+
+# (str) Icon file
+# icon.filename = %(source.dir)s/icon.png
+
+# (str) Presplash file
+# presplash.filename = %(source.dir)s/presplash.png
