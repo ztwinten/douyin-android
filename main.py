@@ -1,131 +1,103 @@
-import threading
-import time
-import requests
-import re
-
-from kivy.clock import Clock
-from kivy.lang import Builder
-
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.textfield import MDTextField
+from kivymd.uix.label import MDLabel
+from kivymd.uix.card import MDCard
+from kivy.clock import Clock
+from kivy.lang import Builder
+import requests
+import webbrowser
+import time
 
-from jnius import autoclass
-
-# Android Intent
-Intent = autoclass('android.content.Intent')
-Uri = autoclass('android.net.Uri')
-PythonActivity = autoclass('org.kivy.android.PythonActivity')
-
-
-def open_douyin(room_id):
-    intent = Intent(Intent.ACTION_VIEW)
-    intent.setData(Uri.parse(f"https://live.douyin.com/{room_id}"))
-    PythonActivity.mActivity.startActivity(intent)
-
-
+# 界面布局
 KV = '''
 MDScreen:
-    MDTopAppBar:
-        title: "抖音直播监测"
-        elevation: 4
-        pos_hint: {"top": 1}
+    md_bg_color: self.theme_cls.bg_normal
 
-    MDBoxLayout:
+    MDCard:
         orientation: "vertical"
         padding: "20dp"
-        spacing: "20dp"
-        pos_hint: {"top": 0.9}
+        spacing: "15dp"
+        size_hint: 0.85, None
+        height: "450dp"
+        pos_hint: {"center_x": .5, "center_y": .5}
+        elevation: 2
+        radius: [15, ]
+
+        MDLabel:
+            text: "直播自动监测"
+            font_style: "H5"
+            halign: "center"
+            size_hint_y: None
+            height: "40dp"
 
         MDTextField:
             id: room_id
-            hint_text: "直播间房间号"
-            helper_text: "例如 913343065056"
+            hint_text: "请输入抖音房间号"
+            helper_text: "例如：20338629153"
             helper_text_mode: "on_focus"
-
-        MDTextField:
-            id: interval
-            text: "60"
-            hint_text: "检测间隔（秒）"
-            input_filter: "int"
-
-        MDRaisedButton:
-            text: "开始监测"
-            pos_hint: {"center_x": 0.5}
-            on_release: app.start_monitor()
+            mode: "outline"
 
         MDLabel:
-            id: log
-            text: ""
-            halign: "left"
+            id: log_display
+            text: "状态: 等待启动"
             theme_text_color: "Secondary"
+            font_style: "Caption"
+            halign: "left"
+            valign: "top"
+
+        MDRaisedButton:
+            id: action_btn
+            text: "开启监测"
+            md_bg_color: app.theme_cls.primary_color
+            pos_hint: {"center_x": .5}
+            size_hint_x: 0.8
+            on_release: app.toggle_monitor()
 '''
 
-
-class DouyinApp(MDApp):
-    running = False
-
+class MonitorApp(MDApp):
     def build(self):
-        self.theme_cls.primary_palette = "Blue"
-        self.theme_cls.theme_style = "Light"  # Dark 也可以
+        self.theme_cls.primary_palette = "Indigo"
+        self.is_monitoring = False
         return Builder.load_string(KV)
 
-    def log(self, msg):
-        self.root.ids.log.text += f"\n{msg}"
+    def toggle_monitor(self):
+        if not self.is_monitoring:
+            room = self.root.ids.room_id.text.strip()
+            if not room:
+                self.root.ids.log_display.text = "错误: 房间号不能为空"
+                return
+            
+            self.is_monitoring = True
+            self.root.ids.action_btn.text = "停止监测"
+            self.root.ids.action_btn.md_bg_color = (0.8, 0.2, 0.2, 1)
+            Clock.schedule_interval(self.check_live, 60) # 60秒检测一次
+        else:
+            self.stop_monitoring()
 
-    def start_monitor(self):
-        if self.running:
-            return
+    def stop_monitoring(self):
+        self.is_monitoring = False
+        self.root.ids.action_btn.text = "开启监测"
+        self.root.ids.action_btn.md_bg_color = self.theme_cls.primary_color
+        Clock.unschedule(self.check_live)
+        self.root.ids.log_display.text = "状态: 已停止"
 
+    def check_live(self, dt):
         room_id = self.root.ids.room_id.text.strip()
-        if not room_id:
-            self.log("❌ 请填写房间号")
-            return
-
+        headers = {"User-Agent": "Mozilla/5.0 (Linux; Android 10)"}
+        url = f"https://live.douyin.com/{room_id}"
+        
         try:
-            interval = int(self.root.ids.interval.text)
-        except:
-            interval = 60
-
-        self.running = True
-        self.root.ids.log.text = ""
-        self.log("▶ 开始监测…")
-
-        threading.Thread(
-            target=self.monitor_loop,
-            args=(room_id, interval),
-            daemon=True
-        ).start()
-
-    def monitor_loop(self, room_id, interval):
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Linux; Android 10)",
-            "Referer": "https://live.douyin.com/"
-        }
-
-        while self.running:
-            try:
-                r = requests.get(
-                    f"https://live.douyin.com/{room_id}",
-                    headers=headers,
-                    timeout=10
-                )
-                html = r.text
-
-                if "直播已结束" in html or "暂未开播" in html:
-                    Clock.schedule_once(lambda dt: self.log("⏳ 未开播"))
-                else:
-                    m = re.search(r'"status":(\d+)', html)
-                    if m and m.group(1) == "2":
-                        Clock.schedule_once(lambda dt: self.log("🔥 已开播，打开直播"))
-                        Clock.schedule_once(lambda dt: open_douyin(room_id))
-                        self.running = False
-                        return
-
-            except:
-                Clock.schedule_once(lambda dt: self.log("⚠️ 网络异常"))
-
-            time.sleep(interval)
-
+            res = requests.get(url, headers=headers, timeout=5)
+            if '"status":2' in res.text or 'flv_pull_url' in res.text:
+                self.root.ids.log_display.text = f"[{time.strftime('%H:%M')}] 已开播！正在跳转..."
+                webbrowser.open(url)
+                self.stop_monitoring()
+            else:
+                self.root.ids.log_display.text = f"[{time.strftime('%H:%M')}] 未开播，持续监测中..."
+        except Exception as e:
+            self.root.ids.log_display.text = f"访问失败: 网络错误"
 
 if __name__ == "__main__":
-    DouyinApp().run()
+    MonitorApp().run()
