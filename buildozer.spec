@@ -1,20 +1,33 @@
 [app]
-title = 抖音监测
-package.name = dymonitor
-package.domain = org.test
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
-version = 0.1
+title = DouyinLiveMonitor
+package.name = douyinmonitor
+package.domain = org.minyue
 
-# 必须包含 kivymd 和 requests
-requirements = python3,kivy==2.3.0,kivymd==1.2.0,requests,urllib3,certifi,idna,charset-normalizer
+source.dir = .
+source.include_exts = py,kv,png,jpg,ttf
+
+version = 1.0
+
+requirements = python3,kivy,kivymd,requests
 
 orientation = portrait
+
 fullscreen = 0
 
-# 安卓权限：网络权限
-android.permissions = INTERNET, FOREGROUND_SERVICE
+android.permissions = INTERNET
 
-# 自动唤起浏览器可能需要的权限
 android.api = 33
 android.minapi = 21
+android.ndk = 25b
+
+android.gradle_dependencies =
+android.enable_androidx = True
+
+android.archs = arm64-v8a,armeabi-v7a
+
+android.accept_sdk_license = True
+
+log_level = 2
+
+[buildozer]
+warn_on_root = 0
