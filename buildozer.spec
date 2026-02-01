@@ -10,6 +10,9 @@ version = 1.0
 
 requirements = python3,kivy,kivymd,requests
 
+android.python_version = 3.10
+
+
 orientation = portrait
 
 fullscreen = 0
@@ -31,3 +34,4 @@ log_level = 2
 
 [buildozer]
 warn_on_root = 0
+
