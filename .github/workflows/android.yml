@@ -42,27 +42,3 @@ jobs:
       with:
         name: douyin-monitor-apk
         path: bin/*.apk
-name: Android Build
-on: [push, pull_request]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build with Buildozer
-        # 将版本改为 v1
-        uses: ArtemSBulgakov/buildozer-action@v1
-        env:
-          USER: root
-        with:
-          workdir: .
-          # 显式指定 command 确保流程完整
-          command: buildozer android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: DouyinMonitor-APK
-          path: bin/*.apk
